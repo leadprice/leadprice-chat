@@ -7,8 +7,17 @@ export async function POST(request) {
     );
   }
 
+  const sitePassword = process.env.SITE_PASSWORD;
+
   try {
     const body = await request.json();
+
+    if (sitePassword && body.password !== sitePassword) {
+      return Response.json(
+        { error: { message: "Невірний пароль" } },
+        { status: 401 }
+      );
+    }
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

@@ -42,6 +42,9 @@ export default function LeadPriceChat() {
   const fileInputRef = useRef(null);
   const [attachedFile, setAttachedFile] = useState(null);
   const [attachedFileContent, setAttachedFileContent] = useState(null);
+  const [authorized, setAuthorized] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,6 +66,7 @@ export default function LeadPriceChat() {
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
         messages: msgs,
+        password: password,
       }),
     });
     if (!response.ok) {
@@ -83,6 +87,14 @@ export default function LeadPriceChat() {
       ]);
       setMessages([{ role: "assistant", content: text }]);
     } catch (e) {
+      if (e.message === "Невірний пароль") {
+        setStarted(false);
+        setAuthorized(false);
+        setPassword("");
+        setPasswordError("Невірний пароль. Спробуйте ще раз.");
+        setLoading(false);
+        return;
+      }
       setError(e.message);
       setMessages([
         {
@@ -191,6 +203,123 @@ export default function LeadPriceChat() {
       );
     });
   };
+
+  // === PASSWORD SCREEN ===
+  if (!authorized) {
+    return (
+      <div
+        style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          background: "#0a0a0a",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "40px 20px",
+        }}
+      >
+        <div
+          style={{
+            background: "#c41e1e",
+            width: "72px",
+            height: "72px",
+            borderRadius: "18px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "28px",
+            boxShadow: "0 12px 40px rgba(196,30,30,0.4)",
+          }}
+        >
+          <span style={{ color: "#fff", fontSize: "32px", fontWeight: 900 }}>LP</span>
+        </div>
+        <h1
+          style={{
+            color: "#fff",
+            fontSize: "32px",
+            fontWeight: 800,
+            margin: "0 0 6px",
+            letterSpacing: "-0.5px",
+          }}
+        >
+          LeadPrice
+        </h1>
+        <p
+          style={{
+            color: "#666",
+            fontSize: "14px",
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+            margin: "0 0 40px",
+          }}
+        >
+          digital agency
+        </p>
+        <div
+          style={{
+            background: "#141414",
+            border: "1px solid #222",
+            borderRadius: "16px",
+            padding: "32px 36px",
+            maxWidth: "400px",
+            width: "100%",
+            textAlign: "center",
+          }}
+        >
+          <h2 style={{ color: "#e8e8e8", fontSize: "18px", fontWeight: 700, margin: "0 0 20px" }}>
+            Введіть пароль
+          </h2>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setPasswordError(""); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (password.trim()) setAuthorized(true);
+              }
+            }}
+            placeholder="Пароль"
+            style={{
+              width: "100%",
+              background: "#1a1a1a",
+              border: passwordError ? "1px solid #c41e1e" : "1px solid #333",
+              borderRadius: "10px",
+              padding: "12px 16px",
+              color: "#e8e8e8",
+              fontSize: "15px",
+              outline: "none",
+              fontFamily: "inherit",
+              marginBottom: "8px",
+            }}
+          />
+          {passwordError && (
+            <p style={{ color: "#f87171", fontSize: "13px", margin: "0 0 12px" }}>{passwordError}</p>
+          )}
+          <button
+            onClick={() => {
+              if (password.trim()) setAuthorized(true);
+            }}
+            style={{
+              background: "linear-gradient(135deg, #c41e1e 0%, #e83a3a 100%)",
+              color: "#fff",
+              border: "none",
+              padding: "14px 40px",
+              borderRadius: "10px",
+              fontSize: "15px",
+              fontWeight: 700,
+              cursor: "pointer",
+              width: "100%",
+              marginTop: "8px",
+              boxShadow: "0 4px 20px rgba(196,30,30,0.3)",
+            }}
+          >
+            Увійти
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // === LANDING ===
   if (!started) {
