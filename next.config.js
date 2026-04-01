@@ -1,3 +1,6 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  devIndicators: false,
+  vercelToolbar: { enabled: false },
+};
 module.exports = nextConfig;
