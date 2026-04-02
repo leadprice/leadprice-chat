@@ -142,28 +142,28 @@ export default function LeadPriceChat() {
 
   const getDocFilename = (type) => {
     const date = new Date().toISOString().slice(0, 10);
-    if (type === "audit") return `LeadPrice_Audit_${date}.doc`;
-    if (type === "pv") return `LeadPrice_Project_Vision_${date}.doc`;
-    return `LeadPrice_${date}.doc`;
+    if (type === "audit") return `LeadPrice_Audit_${date}.docx`;
+    if (type === "pv") return `LeadPrice_Project_Vision_${date}.docx`;
+    return `LeadPrice_${date}.docx`;
   };
 
   const exportDocx = (text) => {
     const clean = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
     const type = getDocType(text);
     let tableOpen = false;
-    const lines = clean.split("\n").map(line => {
+    const lines = clean.split("\n").filter(line => !isTableSeparator(line)).map(line => {
       if (line.startsWith("# ")) return `<h1>${line.slice(2)}</h1>`;
       if (line.startsWith("## ")) return `<h2>${line.slice(3)}</h2>`;
       if (line.startsWith("### ")) return `<h3>${line.slice(4)}</h3>`;
       if (line.startsWith("---")) return "<hr>";
-      if (line.startsWith("| ")) {
+      if (line.startsWith("|")) {
         const cells = line.split("|").filter(c => c.trim());
-        if (line.includes("---")) return "";
+        if (!cells.length) return "";
         let prefix = "";
         if (!tableOpen) { prefix = '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;margin:12px 0;">'; tableOpen = true; }
         return prefix + `<tr>${cells.map(c => `<td style="border:1px solid #ccc;padding:6px 10px;font-size:10pt;">${c.trim()}</td>`).join("")}</tr>`;
       }
-      if (tableOpen && !line.startsWith("|")) { tableOpen = false; return "</table>" + (line.trim() ? `<p>${line}</p>` : "<br>"); }
+      if (tableOpen && !line.startsWith("|")) { tableOpen = false; return "</table>" + (line.trim() ? `<p style="margin:4px 0;">${line}</p>` : "<br>"); }
       if (line.startsWith("• ") || line.startsWith("- ")) return `<p style="margin:2px 0 2px 24px;">${line}</p>`;
       if (line.trim() === "") return "<br>";
       return `<p style="margin:4px 0;">${line}</p>`;
@@ -220,7 +220,8 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
 
   const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
-  const formatMessage = (text) => text.split("\n").filter(line => !/^\|[\s\-:|]+\|$/.test(line.trim())).map((line, i) => {
+  const isTableSeparator = (line) => { const t = line.trim(); return t.startsWith("|") && t.includes("-") && /^[|\s:-]+$/.test(t); };
+  const formatMessage = (text) => text.split("\n").filter(line => !isTableSeparator(line)).map((line, i) => {
     let html = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     return <div key={i} style={{ minHeight: line === "" ? "10px" : "auto" }} dangerouslySetInnerHTML={{ __html: html }} />;
   });
