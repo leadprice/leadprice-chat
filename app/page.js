@@ -19,6 +19,28 @@ export default function LeadPriceChat() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
+  // Restore chat from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("lp-chat");
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.messages?.length) {
+          setMessages(data.messages);
+          setStarted(true);
+          setAuthorized(true);
+        }
+      }
+    } catch (e) {}
+  }, []);
+
+  // Save chat to localStorage when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("lp-chat", JSON.stringify({ messages }));
+    }
+  }, [messages]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -128,6 +150,7 @@ export default function LeadPriceChat() {
     setInput("");
     removeAllFiles();
     setError(null);
+    localStorage.removeItem("lp-chat");
     setLoading(true);
     try {
       const result = await callAPI([{ role: "user", content: "Почни роботу." }]);
