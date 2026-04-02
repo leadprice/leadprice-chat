@@ -1,3 +1,16 @@
+import { readFileSync } from "fs";
+import { join } from "path";
+
+let systemPromptCache = null;
+
+function getSystemPrompt() {
+  if (!systemPromptCache) {
+    const filePath = join(process.cwd(), "system-prompt.md");
+    systemPromptCache = readFileSync(filePath, "utf-8");
+  }
+  return systemPromptCache;
+}
+
 export async function POST(request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -19,6 +32,8 @@ export async function POST(request) {
       );
     }
 
+    const systemPrompt = getSystemPrompt();
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -27,10 +42,11 @@ export async function POST(request) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: body.model || "claude-sonnet-4-20250514",
-        max_tokens: body.max_tokens || 4096,
-        system: body.system,
+        model: body.model || "claude-haiku-4-5-20251001",
+        max_tokens: body.max_tokens || 8192,
+        system: systemPrompt,
         messages: body.messages,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
       }),
     });
 
