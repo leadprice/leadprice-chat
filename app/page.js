@@ -231,7 +231,7 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
 
   const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
-  const formatMessage = (text) => text.split("\n").map((line, i) => {
+  const formatMessage = (text) => text.split("\n").filter(line => !/^\|[\s\-:|]+\|$/.test(line.trim())).map((line, i) => {
     let html = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     return <div key={i} style={{ minHeight: line === "" ? "10px" : "auto" }} dangerouslySetInnerHTML={{ __html: html }} />;
   });
@@ -390,22 +390,6 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
                 )}
                 {formatMessage(m.displayContent || m.content)}
               </div>
-              {/* DOCX export button for assistant messages */}
-              {m.role === "assistant" && m.content.length > 500 && (getDocType(m.content) === "audit" || getDocType(m.content) === "pv") && (
-                <button
-                  onClick={() => exportDocx(m.content)}
-                  style={{
-                    background: "#1a1a1a", border: "1px solid #333", borderRadius: "6px",
-                    padding: "6px 14px", marginTop: "8px", fontSize: "12px", color: "#ccc",
-                    cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px",
-                    fontWeight: 600, fontFamily: "inherit"
-                  }}
-                  onMouseEnter={e => { e.target.style.background = "#252525"; e.target.style.borderColor = "#c41e1e"; }}
-                  onMouseLeave={e => { e.target.style.background = "#1a1a1a"; e.target.style.borderColor = "#333"; }}
-                >
-                  {getDocLabel(getDocType(m.content))}
-                </button>
-              )}
             </div>
           </div>
         ))}
