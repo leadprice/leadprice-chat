@@ -43,7 +43,7 @@ export async function POST(request) {
       },
       body: JSON.stringify({
         model: body.model || "claude-sonnet-4-20250514",
-        max_tokens: body.max_tokens || 8192,
+        max_tokens: body.max_tokens || 16000,
         system: systemPrompt,
         messages: body.messages,
         tools: [{ type: "web_search_20250305", name: "web_search" }],

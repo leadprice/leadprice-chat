@@ -36,7 +36,7 @@ export default function LeadPriceChat() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 8192,
+        max_tokens: 16000,
         messages: msgs,
         password: password
       })
