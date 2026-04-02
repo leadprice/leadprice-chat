@@ -569,34 +569,6 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
           </div>
         )}
 
-        {/* Export buttons - show when documents are ready */}
-        {(() => {
-          const docs = messages.filter(m => m.role === "assistant" && m.content.length > 500);
-          const auditMsg = docs.find(m => getDocType(m.content) === "audit");
-          const pvMsg = docs.find(m => getDocType(m.content) === "pv");
-          if (!auditMsg && !pvMsg) return null;
-          return (
-            <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
-              {auditMsg && (
-                <button onClick={() => exportDocx(auditMsg.content)}
-                  onMouseEnter={e => { e.target.style.borderColor = "#c41e1e"; e.target.style.color = "#fff"; }}
-                  onMouseLeave={e => { e.target.style.borderColor = "#444"; e.target.style.color = "#ccc"; }}
-                  style={{ background: "#1a1a1a", border: "1px solid #444", borderRadius: "8px", padding: "8px 16px", fontSize: "13px", color: "#ccc", cursor: "pointer", fontWeight: 600, fontFamily: "inherit", transition: "all 0.15s" }}>
-                  Вивантажити Аудит у DOCX
-                </button>
-              )}
-              {pvMsg && (
-                <button onClick={() => exportDocx(pvMsg.content)}
-                  onMouseEnter={e => { e.target.style.borderColor = "#c41e1e"; e.target.style.color = "#fff"; }}
-                  onMouseLeave={e => { e.target.style.borderColor = "#444"; e.target.style.color = "#ccc"; }}
-                  style={{ background: "#1a1a1a", border: "1px solid #444", borderRadius: "8px", padding: "8px 16px", fontSize: "13px", color: "#ccc", cursor: "pointer", fontWeight: 600, fontFamily: "inherit", transition: "all 0.15s" }}>
-                  Вивантажити Project Vision у DOCX
-                </button>
-              )}
-            </div>
-          );
-        })()}
-
         {attachedFile && (
           <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "8px 12px", marginBottom: "10px", fontSize: "12px", color: "#999", display: "flex", justifyContent: "space-between" }}>
             <span>{attachedFile.name}</span>
@@ -613,6 +585,45 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
+
+        {/* Export buttons - always visible, below input */}
+        {(() => {
+          const docs = messages.filter(m => m.role === "assistant" && m.content.length > 500);
+          const auditMsg = docs.find(m => getDocType(m.content) === "audit");
+          const pvMsg = docs.find(m => getDocType(m.content) === "pv");
+          return (
+            <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+              <button onClick={() => auditMsg ? exportDocx(auditMsg.content) : null}
+                style={{
+                  background: auditMsg ? "#1a1a1a" : "transparent",
+                  border: auditMsg ? "2px solid #fff" : "1px dashed #444",
+                  borderRadius: "8px", padding: "8px 16px", fontSize: "13px",
+                  color: auditMsg ? "#fff" : "#666",
+                  cursor: auditMsg ? "pointer" : "default",
+                  fontWeight: 600, fontFamily: "inherit", transition: "all 0.2s"
+                }}
+                onMouseEnter={e => { if (auditMsg) { e.target.style.borderColor = "#c41e1e"; e.target.style.background = "#c41e1e"; e.target.style.color = "#fff"; }}}
+                onMouseLeave={e => { if (auditMsg) { e.target.style.borderColor = "#fff"; e.target.style.background = "#1a1a1a"; e.target.style.color = "#fff"; }}}
+              >
+                {auditMsg ? "Вивантажити Аудит у DOCX" : "Аудит — очікую документ"}
+              </button>
+              <button onClick={() => pvMsg ? exportDocx(pvMsg.content) : null}
+                style={{
+                  background: pvMsg ? "#1a1a1a" : "transparent",
+                  border: pvMsg ? "2px solid #fff" : "1px dashed #444",
+                  borderRadius: "8px", padding: "8px 16px", fontSize: "13px",
+                  color: pvMsg ? "#fff" : "#666",
+                  cursor: pvMsg ? "pointer" : "default",
+                  fontWeight: 600, fontFamily: "inherit", transition: "all 0.2s"
+                }}
+                onMouseEnter={e => { if (pvMsg) { e.target.style.borderColor = "#c41e1e"; e.target.style.background = "#c41e1e"; e.target.style.color = "#fff"; }}}
+                onMouseLeave={e => { if (pvMsg) { e.target.style.borderColor = "#fff"; e.target.style.background = "#1a1a1a"; e.target.style.color = "#fff"; }}}
+              >
+                {pvMsg ? "Вивантажити Project Vision у DOCX" : "Project Vision — очікую документ"}
+              </button>
+            </div>
+          );
+        })()}
       </div>
       <style>{`
         @keyframes pulse { 0%,80%,100%{opacity:.3;transform:scale(.8)} 40%{opacity:1;transform:scale(1.1)} }
