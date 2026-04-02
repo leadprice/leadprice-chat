@@ -19,8 +19,7 @@ export default function LeadPriceChat() {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
-  const [attachedFile, setAttachedFile] = useState(null);
-  const [attachedFileContent, setAttachedFileContent] = useState(null);
+  const [attachedFiles, setAttachedFiles] = useState([]);
   const [authorized, setAuthorized] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -84,32 +83,39 @@ export default function LeadPriceChat() {
   };
 
   // --- FILE HANDLING ---
-  const processFile = (file) => {
-    if (!file) return;
-    setAttachedFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result;
-      if (typeof text === "string") setAttachedFileContent(text.slice(0, 80000));
-    };
+  const processFiles = (fileList) => {
+    const files = Array.from(fileList);
+    if (!files.length) return;
     const textTypes = [".csv", ".txt", ".md", ".json", ".tsv"];
-    if (textTypes.some(ext => file.name.toLowerCase().endsWith(ext)) || file.type.startsWith("text/")) {
-      reader.readAsText(file);
-    } else {
-      setAttachedFileContent("[Файл: " + file.name + " — тип: " + (file.type || "невідомий") + ", розмір: " + (file.size / 1024).toFixed(1) + "KB]");
-    }
+    files.forEach(file => {
+      const entry = { file, name: file.name, content: null };
+      if (textTypes.some(ext => file.name.toLowerCase().endsWith(ext)) || file.type.startsWith("text/")) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const text = ev.target?.result;
+          if (typeof text === "string") {
+            entry.content = text.slice(0, 80000);
+            setAttachedFiles(prev => prev.map(f => f === entry ? { ...f, content: entry.content } : f));
+          }
+        };
+        reader.readAsText(file);
+      } else {
+        entry.content = "[Файл: " + file.name + " — тип: " + (file.type || "невідомий") + ", розмір: " + (file.size / 1024).toFixed(1) + "KB]";
+      }
+      setAttachedFiles(prev => [...prev, entry]);
+    });
   };
 
-  const handleFileAttach = (e) => processFile(e.target.files?.[0]);
-  const removeFile = () => { setAttachedFile(null); setAttachedFileContent(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
+  const handleFileAttach = (e) => { processFiles(e.target.files); if (fileInputRef.current) fileInputRef.current.value = ""; };
+  const removeFile = (index) => { setAttachedFiles(prev => prev.filter((_, i) => i !== index)); };
+  const removeAllFiles = () => { setAttachedFiles([]); };
 
   // --- DRAG & DROP ---
   const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setDragging(true); };
   const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setDragging(false); };
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragging(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) processFile(file);
+    if (e.dataTransfer?.files?.length) processFiles(e.dataTransfer.files);
   };
 
   // --- RESET CHAT ---
@@ -117,7 +123,7 @@ export default function LeadPriceChat() {
     setShowResetConfirm(false);
     setMessages([]);
     setInput("");
-    removeFile();
+    removeAllFiles();
     setError(null);
     setLoading(true);
     try {
@@ -198,17 +204,20 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
 
   // --- SEND ---
   const sendMessage = async () => {
-    if ((!input.trim() && !attachedFileContent) || loading) return;
+    const hasFiles = attachedFiles.some(f => f.content);
+    if ((!input.trim() && !hasFiles) || loading) return;
     setError(null);
     let userContent = input.trim();
-    if (attachedFileContent) {
-      userContent = (userContent ? userContent + "\n\n" : "") + "--- Файл: " + (attachedFile?.name || "file") + " ---\n" + attachedFileContent;
+    if (hasFiles) {
+      const filesText = attachedFiles.filter(f => f.content).map(f => "--- Файл: " + f.name + " ---\n" + f.content).join("\n\n");
+      userContent = (userContent ? userContent + "\n\n" : "") + filesText;
     }
-    const userMsg = { role: "user", content: userContent, displayContent: input.trim(), fileName: attachedFile?.name };
+    const fileNames = attachedFiles.map(f => f.name);
+    const userMsg = { role: "user", content: userContent, displayContent: input.trim(), fileNames: fileNames.length ? fileNames : undefined };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
-    removeFile();
+    removeAllFiles();
     setLoading(true);
     try {
       const text = await callAPI(newMessages.map(m => ({ role: m.role, content: m.content })));
@@ -383,9 +392,9 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
                 borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                 padding: "14px 18px", fontSize: "14px", lineHeight: "1.7", color: "#ddd"
               }}>
-                {m.fileName && (
+                {m.fileNames?.length > 0 && (
                   <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "6px 12px", marginBottom: "10px", fontSize: "12px", color: "#999" }}>
-                    + {m.fileName}
+                    {m.fileNames.map((fn, fi) => <div key={fi}>+ {fn}</div>)}
                   </div>
                 )}
                 {formatMessage(m.displayContent || m.content)}
@@ -463,19 +472,23 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
           </div>
         )}
 
-        {attachedFile && (
-          <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "8px 12px", marginBottom: "10px", fontSize: "12px", color: "#999", display: "flex", justifyContent: "space-between" }}>
-            <span>{attachedFile.name}</span>
-            <button onClick={removeFile} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "16px" }}>x</button>
+        {attachedFiles.length > 0 && (
+          <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
+            {attachedFiles.map((f, i) => (
+              <div key={i} style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "6px 12px", fontSize: "12px", color: "#999", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>{f.name}</span>
+                <button onClick={() => removeFile(i)} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: 0, lineHeight: 1 }}>x</button>
+              </div>
+            ))}
           </div>
         )}
         <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
           <button onClick={() => fileInputRef.current?.click()} style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "10px", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#777", fontSize: "20px", flexShrink: 0 }}>+</button>
-          <input ref={fileInputRef} type="file" accept=".csv,.txt,.pdf,.docx,.md,.tsv,.json" style={{ display: "none" }} onChange={handleFileAttach} />
+          <input ref={fileInputRef} type="file" multiple accept=".csv,.txt,.pdf,.docx,.md,.tsv,.json" style={{ display: "none" }} onChange={handleFileAttach} />
           <textarea ref={textareaRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Напишіть повідомлення або перетягніть файл..." rows={1}
             style={{ flex: 1, background: "#141414", border: "1px solid #222", borderRadius: "12px", padding: "12px 16px", color: "#e8e8e8", fontSize: "14px", lineHeight: "1.5", resize: "none", outline: "none", fontFamily: "inherit", maxHeight: "160px" }} />
-          <button onClick={sendMessage} disabled={loading || (!input.trim() && !attachedFileContent)}
-            style={{ background: (loading || (!input.trim() && !attachedFileContent)) ? "#222" : "#c41e1e", border: "none", borderRadius: "10px", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", cursor: (loading || (!input.trim() && !attachedFileContent)) ? "not-allowed" : "pointer", flexShrink: 0 }}>
+          <button onClick={sendMessage} disabled={loading || (!input.trim() && !attachedFiles.length)}
+            style={{ background: (loading || (!input.trim() && !attachedFiles.length)) ? "#222" : "#c41e1e", border: "none", borderRadius: "10px", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", cursor: (loading || (!input.trim() && !attachedFiles.length)) ? "not-allowed" : "pointer", flexShrink: 0 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
