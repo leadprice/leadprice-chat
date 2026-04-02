@@ -156,9 +156,9 @@ export default function LeadPriceChat() {
 
   const getDocFilename = (type) => {
     const date = new Date().toISOString().slice(0, 10);
-    if (type === "audit") return `LeadPrice_Audit_${date}.docx`;
-    if (type === "pv") return `LeadPrice_Project_Vision_${date}.docx`;
-    return `LeadPrice_${date}.docx`;
+    if (type === "audit") return `LeadPrice_Audit_${date}.doc`;
+    if (type === "pv") return `LeadPrice_Project_Vision_${date}.doc`;
+    return `LeadPrice_${date}.doc`;
   };
 
   const exportDocx = (text) => {
