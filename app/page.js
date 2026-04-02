@@ -46,7 +46,21 @@ export default function LeadPriceChat() {
       throw new Error(errData.error?.message || `API error ${response.status}`);
     }
     const data = await response.json();
-    return data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
+    const text = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
+    return { text, stop_reason: data.stop_reason };
+  };
+
+  const callAPIWithContinuation = async (msgs) => {
+    let fullText = "";
+    let currentMsgs = [...msgs];
+    let maxLoops = 5;
+    while (maxLoops-- > 0) {
+      const result = await callAPI(currentMsgs);
+      fullText += result.text;
+      if (result.stop_reason !== "max_tokens") break;
+      currentMsgs = [...currentMsgs, { role: "assistant", content: fullText }, { role: "user", content: "Продовжуй з того місця, де зупинився. Не повторюй те, що вже написав." }];
+    }
+    return fullText;
   };
 
   const startChat = async () => {
@@ -54,8 +68,8 @@ export default function LeadPriceChat() {
     setLoading(true);
     setError(null);
     try {
-      const text = await callAPI([{ role: "user", content: "Почни роботу." }]);
-      setMessages([{ role: "assistant", content: text }]);
+      const result = await callAPI([{ role: "user", content: "Почни роботу." }]);
+      setMessages([{ role: "assistant", content: result.text }]);
     } catch (e) {
       if (e.message === "Невірний пароль") {
         setStarted(false);
@@ -116,8 +130,8 @@ export default function LeadPriceChat() {
     setError(null);
     setLoading(true);
     try {
-      const text = await callAPI([{ role: "user", content: "Почни роботу." }]);
-      setMessages([{ role: "assistant", content: text }]);
+      const result = await callAPI([{ role: "user", content: "Почни роботу." }]);
+      setMessages([{ role: "assistant", content: result.text }]);
     } catch (e) {
       setMessages([{ role: "assistant", content: "Привіт! Готовий допомогти з документами для клієнта.\n\nНапишіть що потрібно і для якої платформи:\n\n— Аудит Meta / Аудит Google\n— Project Vision Meta / Project Vision Google\n— Аудит + PV Meta / Аудит + PV Google\n\nАбо натисніть одну з кнопок нижче." }]);
     }
@@ -209,7 +223,7 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
     removeAllFiles();
     setLoading(true);
     try {
-      const text = await callAPI(newMessages.map(m => ({ role: m.role, content: m.content })));
+      const text = await callAPIWithContinuation(newMessages.map(m => ({ role: m.role, content: m.content })));
       setMessages(prev => [...prev, { role: "assistant", content: text }]);
     } catch (e) {
       setError(e.message);
@@ -415,7 +429,7 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
                   setMessages(newMsgs);
                   setLoading(true);
                   try {
-                    const text = await callAPI(newMsgs.map(m => ({ role: m.role, content: m.content })));
+                    const text = await callAPIWithContinuation(newMsgs.map(m => ({ role: m.role, content: m.content })));
                     setMessages(prev => [...prev, { role: "assistant", content: text }]);
                   } catch (e) {
                     setMessages(prev => [...prev, { role: "assistant", content: "Помилка: " + e.message }]);
