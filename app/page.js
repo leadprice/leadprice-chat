@@ -363,7 +363,7 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
                     {m.fileNames.map((fn, fi) => <div key={fi}>+ {fn}</div>)}
                   </div>
                 )}
-                {formatMessage(m.displayContent || m.content)}
+                {formatMessage(m.displayContent !== undefined ? m.displayContent : m.content)}
               </div>
             </div>
           </div>
