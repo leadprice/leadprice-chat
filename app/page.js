@@ -380,6 +380,29 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
                 )}
                 {formatMessage(m.displayContent !== undefined ? m.displayContent : m.content)}
               </div>
+              {/* "Зробити Project Vision" button after audit */}
+              {m.role === "assistant" && getDocType(m.content) === "audit" && !messages.some(msg => msg.role === "assistant" && getDocType(msg.content) === "pv") && !loading && (
+                <button
+                  onClick={async () => {
+                    const pvRequest = { role: "user", content: "Зроби Project Vision на основі цього аудиту. Та сама платформа, ті самі дані.", displayContent: "Зробити Project Vision" };
+                    const newMsgs = [...messages, pvRequest];
+                    setMessages(newMsgs);
+                    setLoading(true);
+                    try {
+                      const text = await callAPIWithContinuation(newMsgs.map(msg => ({ role: msg.role, content: msg.content })));
+                      setMessages(prev => [...prev, { role: "assistant", content: text }]);
+                    } catch (e) {
+                      setMessages(prev => [...prev, { role: "assistant", content: "Помилка: " + e.message }]);
+                    }
+                    setLoading(false);
+                  }}
+                  onMouseEnter={e => { e.target.style.background = "#c41e1e"; e.target.style.borderColor = "#c41e1e"; }}
+                  onMouseLeave={e => { e.target.style.background = "#1a1a1a"; e.target.style.borderColor = "#fff"; }}
+                  style={{ background: "#1a1a1a", border: "2px solid #fff", borderRadius: "8px", padding: "10px 20px", marginTop: "12px", fontSize: "14px", color: "#fff", cursor: "pointer", fontWeight: 700, fontFamily: "inherit", transition: "all 0.2s", display: "inline-block" }}
+                >
+                  Зробити Project Vision
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -417,9 +440,7 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
               { label: "Аудит Meta", value: "аудит meta" },
               { label: "Аудит Google", value: "аудит google" },
               { label: "Project Vision Meta", value: "project vision meta" },
-              { label: "Project Vision Google", value: "project vision google" },
-              { label: "Аудит + Project Vision Meta", value: "аудит + pv meta" },
-              { label: "Аудит + Project Vision Google", value: "аудит + pv google" }
+              { label: "Project Vision Google", value: "project vision google" }
             ].map(btn => (
               <button
                 key={btn.value}
