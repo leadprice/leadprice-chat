@@ -292,15 +292,6 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
       onDrop={handleDrop}
       style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: "#0a0a0a", height: "100vh", display: "flex", flexDirection: "column", position: "relative" }}
     >
-      {/* Drag overlay */}
-      {dragging && (
-        <div style={{ position: "absolute", inset: 0, background: "rgba(196,30,30,0.15)", border: "3px dashed #c41e1e", borderRadius: "12px", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "#1a1a1a", padding: "24px 40px", borderRadius: "12px", border: "1px solid #c41e1e" }}>
-            <p style={{ color: "#fff", fontSize: "18px", fontWeight: 700, margin: 0 }}>Перетягніть файл сюди</p>
-            <p style={{ color: "#888", fontSize: "13px", margin: "6px 0 0" }}>CSV, TXT, PDF, DOCX</p>
-          </div>
-        </div>
-      )}
 
       {/* Header */}
       <div style={{ background: "#111", borderBottom: "1px solid #1e1e1e", padding: "14px 24px", display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
@@ -434,7 +425,16 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
       </div>
 
       {/* Input */}
-      <div style={{ borderTop: "1px solid #1e1e1e", padding: "12px 24px 16px", background: "#0d0d0d", flexShrink: 0 }}>
+      <div style={{ borderTop: "1px solid #1e1e1e", padding: "12px 24px 16px", background: "#0d0d0d", flexShrink: 0, position: "relative" }}>
+        {/* Drag overlay — only on input area */}
+        {dragging && (
+          <div style={{ position: "absolute", inset: 0, background: "rgba(196,30,30,0.12)", border: "2px dashed #c41e1e", borderRadius: "8px", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(2px)" }}>
+            <div style={{ background: "#1a1a1a", padding: "14px 28px", borderRadius: "10px", border: "1px solid #c41e1e" }}>
+              <p style={{ color: "#fff", fontSize: "15px", fontWeight: 700, margin: 0 }}>Перетягніть файли сюди</p>
+              <p style={{ color: "#888", fontSize: "12px", margin: "4px 0 0", textAlign: "center" }}>CSV, TXT, PDF, DOCX</p>
+            </div>
+          </div>
+        )}
 
         {/* Quick action buttons - show at start */}
         {messages.length <= 1 && !loading && (
@@ -477,7 +477,7 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
             {attachedFiles.map((f, i) => (
               <div key={i} style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "6px 12px", fontSize: "12px", color: "#999", display: "flex", alignItems: "center", gap: "8px" }}>
                 <span>{f.name}</span>
-                <button onClick={() => removeFile(i)} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: 0, lineHeight: 1 }}>x</button>
+                <button onClick={() => removeFile(i)} style={{ background: "none", border: "none", color: "#c41e1e", cursor: "pointer", fontSize: "18px", fontWeight: 900, padding: "0 2px", lineHeight: 1 }}>✕</button>
               </div>
             ))}
           </div>
