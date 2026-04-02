@@ -2,11 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 
-const MODELS = {
-  haiku: { id: "claude-haiku-4-5-20251001", label: "Haiku" },
-  sonnet: { id: "claude-sonnet-4-20250514", label: "Sonnet" },
-};
-
 export default function LeadPriceChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -23,12 +18,6 @@ export default function LeadPriceChat() {
   const [authorized, setAuthorized] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [selectedModel, setSelectedModel] = useState("haiku");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("lp-model");
-    if (saved && MODELS[saved]) setSelectedModel(saved);
-  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -46,7 +35,7 @@ export default function LeadPriceChat() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: MODELS[selectedModel].id,
+        model: "claude-sonnet-4-20250514",
         max_tokens: 8192,
         messages: msgs,
         password: password
@@ -303,20 +292,6 @@ hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
           <div style={{ color: "#555", fontSize: "11px" }}>Аудит + Project Vision</div>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* Model toggle */}
-          <div style={{ display: "flex", background: "#1a1a1a", borderRadius: "8px", border: "1px solid #333", overflow: "hidden" }}>
-            {Object.entries(MODELS).map(([key, m]) => (
-              <button key={key} onClick={() => { setSelectedModel(key); localStorage.setItem("lp-model", key); }}
-                style={{
-                  background: selectedModel === key ? "#c41e1e" : "transparent",
-                  border: "none", padding: "6px 14px", fontSize: "12px", fontWeight: 700,
-                  color: selectedModel === key ? "#fff" : "#888",
-                  cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s"
-                }}>
-                {m.label}
-              </button>
-            ))}
-          </div>
           <button
               onClick={() => messages.length > 1 ? setShowResetConfirm(true) : null}
               style={{
