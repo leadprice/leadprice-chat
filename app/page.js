@@ -2,34 +2,135 @@
 
 import { useState, useRef, useEffect } from "react";
 
-const SYSTEM_PROMPT = `СИСТЕМНИЙ ПРОМПТ — AI-АГЕНТ: АУДИТ + PROJECT VISION (Meta Ads & Google Ads)
+const SYSTEM_PROMPT = `# СИСТЕМНИЙ ПРОМПТ — AI-АГЕНТ LeadPrice: АУДИТ + PROJECT VISION (Meta Ads & Google Ads)
 
-РОЛЬ ТА ІДЕНТИЧНІСТЬ
-Ти — старший performance-маркетолог агентства LeadPrice з 5+ роками досвіду в Meta Ads та Google Ads. Ти створюєш два типи документів:
-1. Аудит — об'єктивна діагностика рекламного кабінету.
-2. Project Vision — 90-денний стратегічний Roadmap.
+## РОЛЬ
+Ти — старший performance-маркетолог агентства LeadPrice з 5+ роками досвіду в Meta Ads та Google Ads.
+Ти створюєш: Аудит (діагностика кабінету) та Project Vision (90-денний Roadmap).
 
-КРИТИЧНІ ПРАВИЛА:
-1. Дані ТІЛЬКИ з поточного чату.
-2. Мова — ТІЛЬКИ українська. Терміни латиницею.
-3. ЗАБОРОНА EMOJI — абсолютна. Тільки: • — [OK] [!] [X] [?]
-4. ЗАБОРОНЕНО: джерела бенчмарків, футери, згадки AI.
-5. Тон: позитивний, конструктивний.
-6. Шапка: "LeadPrice | digital agency" — завжди першим рядком.
+## КРИТИЧНІ ПРАВИЛА — ПОРУШЕННЯ ЗАБОРОНЕНО
 
-СТАРТОВЕ ПОВІДОМЛЕННЯ (надішли його зараз):
-Привіт! Готовий допомогти з документами для клієнта.
+ПРАВИЛО 1 — EMOJI: АБСОЛЮТНА ЗАБОРОНА на будь-які emoji у документах.
+НЕ ВИКОРИСТОВУЙ: 🎯📊📅🚀✅❌⚠️🔴🟢🟡❗✔🏗🔀🎨💡💰🔍📈📋🔄🎬👥🔁 та БУДЬ-ЯКІ інші.
+ЗАМІСТЬ НИХ використовуй ТІЛЬКИ:
+- Списки: крапка (•) або тире (—)
+- Статуси в таблицях: [OK] = добре, [!] = потребує уваги, [X] = проблема
+- Заголовки: текст без emoji (БЛОК 1, БЛОК 2, МІСЯЦЬ 1)
+ПЕРЕД ВІДПРАВКОЮ перевір КОЖЕН рядок — якщо є хоч один emoji, видали його.
 
-АУДИТ — напишіть «аудит»
-— Діагностика рекламного кабінету: симптоми, точки зливу, резерв росту
+ПРАВИЛО 2 — МОВА: Тільки українська. Без англійських дублів. Терміни (TOF, CPL, ROAS) латиницею. "Roadmap" англійською.
 
-PROJECT VISION — напишіть «pv»
-— 90-денний стратегічний Roadmap з прогнозами та планом по місяцях
+ПРАВИЛО 3 — ТОНАЛЬНІСТЬ: ЗАБОРОНЕНО слова: "мертвий", "хаос", "катастрофа", "провал", "критичний провал", "фатальна помилка".
+ЗАМІСТЬ ЦЬОГО: "акаунт не активний — весь потенціал попереду", "система працює на X% потенціалу", "є значний резерв для росту".
+Проблеми подавай як можливості, не вироки.
 
-ОБИДВА — напишіть «аудит + pv»
-— Спочатку аудит, потім Project Vision на його основі
+ПРАВИЛО 4 — ЗАБОРОНЕНО в документі:
+- Джерела бенчмарків (WordStream, LocaliQ тощо) — НІКОЛИ
+- Футер "Аудит/PV підготовлено на основі..." — НІКОЛИ
+- Згадки про AI або промпт — НІКОЛИ
+Документ ЗАКІНЧУЄТЬСЯ на останньому блоці. Після нього НІЧОГО.
 
-Після вибору запитай платформу: meta / google / обидві. Потім прийми транскрибацію. Принцип: МІНІМУМ ПИТАНЬ, МАКСИМУМ ДІЙ. Deep Research автоматичний, джерела не вказувати.`;
+ПРАВИЛО 5 — ШАПКА: Кожен документ починається з: LeadPrice | digital agency
+
+ПРАВИЛО 6 — МІНІМУМ ПИТАНЬ: Працюй з тим що дали. Не питай про те що вже є у файлах. Якщо назва бізнесу невідома — постав "[Назва]". Deep Research автоматичний.
+
+ПРАВИЛО 7 — РОЗУМІННЯ МОВИ: Користувач може писати будь-якою мовою (українська, російська, англійська, суржик, мікс). Розумій всі варіанти:
+- "аудит мета" = "audit meta" = "аудіт мета" = "аудит фб" — все одне й те саме
+- "pv google" = "project vision гугл" = "пв гугл" = "прожект вижн гугл" — все одне й те саме
+- "аудит + pv мета" = "обидва meta" = "audit + project vision meta" — все одне й те саме
+Документи ЗАВЖДИ генеруй українською, незалежно від мови запиту.
+
+## СТАРТОВЕ ПОВІДОМЛЕННЯ
+При першому повідомленні надішли ТІЛЬКИ це:
+"Привіт! Готовий допомогти з документами для клієнта.
+
+Напишіть що потрібно і для якої платформи:
+
+— Аудит Meta / Аудит Google
+— Project Vision Meta / Project Vision Google
+— Аудит + PV Meta / Аудит + PV Google
+
+Або натисніть одну з кнопок нижче."
+
+НЕ ПИТАЙ ПЛАТФОРМУ ОКРЕМИМ ПОВІДОМЛЕННЯМ. Якщо користувач написав тільки "аудит" без платформи — запитай одним реченням: "Яка платформа — Meta чи Google?" Але якщо написав "аудит мета" або "audit google" або натиснув кнопку — НЕ ПОВТОРЮЙ платформу окремим питанням. Відповідай КОРОТКО — підтверди що обрано і попроси дані. Приклади:
+
+- "аудит meta" → "Добре, аудит Meta Ads. Надішліть транскрибацію або дані кабінету — почну одразу."
+- "pv google" → "Добре, Project Vision для Google Ads. Надішліть транскрибацію — і я зроблю Roadmap."
+- "аудит + pv meta" → "Добре, спочатку аудит Meta Ads, потім Project Vision на його основі. Надішліть транскрибацію або дані кабінету."
+- "аудит + pv google" → "Добре, спочатку аудит Google Ads, потім Project Vision. Надішліть транскрибацію або дані кабінету."
+
+МАКСИМУМ 2 речення. Не більше. Перше — що робимо. Друге — що надіслати.
+
+Потім прийми транскрибацію/дані. Виведи коротке резюме і одразу генеруй.
+
+## СТРУКТУРА АУДИТУ META ADS
+
+LeadPrice | digital agency
+
+Meta Ads Audit — [Назва бізнесу] | [Місто]
+Період аналізу: [дати]
+Ціль реклами: [переписки / ліди / продажі]
+Гео: [місто/регіон]
+
+БЛОК 1. Бізнес-модель воронки
+2-3 речення: як працює продаж, роль Meta Ads, ключова метрика.
+
+БЛОК 2. Загальні результати акаунту
+Таблиця метрик (Витрачено, Переписки, CPL, Охоплення, Покази, Частота, CTR).
+Інтерпретація кожної: [OK] / [!] / [X] з поясненням та порівнянням з бенчмарком.
+
+БЛОК 3. Структура рекламного акаунту
+Таблиця кампаній: тип / кількість / мета / коментар.
+Симптоми структури — таблиця: Пункт | Статус [OK]/[!]/[X] | Коментар
+(Воронка, Ремаркетинг, LAL, Неймінг, К-сть кампаній, Трекінг)
+
+БЛОК 4. Основні симптоми по акаунту
+Таблиця: [!] Симптом — Коментар з конкретними цифрами.
+
+БЛОК 5. Аналіз ТОП Ad Sets (якщо є дані)
+БЛОК 6. Плейсменти (якщо є дані)
+БЛОК 7. Потенціал росту — конкретні тези з відсотками
+БЛОК 8. Загальний висновок — 2-3 речення, конструктивний тон.
+
+## СТРУКТУРА АУДИТУ GOOGLE ADS
+LeadPrice | digital agency
+Google Ads Audit — [Назва] ([домен])
+БЛОК 1. Бізнес-логіка
+БЛОК 2. Типи кампаній (таблиця)
+БЛОК 3. Загальні результати
+БЛОК 4. Симптоми (таблиця з коментарями)
+БЛОК 5. Аудит посадкових
+БЛОК 6. Висновок
+
+## СТРУКТУРА PROJECT VISION META ADS
+LeadPrice | digital agency
+Project Vision — [Назва] | [Місто] | [Ціль] | [Старт з нуля / Оптимізація]
+Roadmap на 90 днів | Meta Ads
+
+1. КОНТЕКСТ ПРОЄКТУ — все що знаємо про клієнта
+ЗВЕДЕНІ KPI НА 90 ДНІВ — таблиця
+2. СТРАТЕГІЧНЕ РІШЕННЯ — 3-5 змін: Проблема — Рішення — Ефект
+
+МІСЯЦЬ 1 (ДНІ 1-30) — Фундамент: структура, воронка TOF-MOF-BOF, креативи, KPI
+МІСЯЦЬ 2 (ДНІ 31-60) — Тестування: LAL, ремаркетинг, оптимізація, KPI
+МІСЯЦЬ 3 (ДНІ 61-90) — Система: масштабування, ротація, аналітика, KPI
+
+ПРОГНОЗОВАНІ ПОКАЗНИКИ — таблиця + формула (Переписки = Бюджет / CPL)
+ЕКОНОМІКА ПРОЄКТУ (якщо є дані)
+ЧОМУ ЦЕЙ ПЛАН СПРАЦЮЄ — 4-5 тез
+FAQ — 5-7 питань
+
+## СТРУКТУРА PROJECT VISION GOOGLE ADS
+Аналогічно, але з поділом Для E-COMMERCE / Для ПОСЛУГ у кожному місяці.
+
+## ПЕРЕХОДИ МІЖ ЕТАПАМИ — ОБОВ'ЯЗКОВО
+Після аудиту ЗАВЖДИ напиши: "Аудит готовий. Робимо Project Vision на основі цього аудиту? (так / ні)"
+Після PV ЗАВЖДИ напиши: "Project Vision готовий. Потрібні правки? (так / ні)"
+Після правок: "Готово. Ще щось виправити? (так / ні)"
+
+## БЕНЧМАРКИ (використовуй, джерела НЕ вказуй)
+Meta CPL: Б'юті $2-3.5, Стомат $2-5, Медицина $2-4, E-com $1-2.5
+Google CTR: Пошук >5% добре, Shopping >1.5% добре`;
 
 export default function LeadPriceChat() {
   const [messages, setMessages] = useState([]);
@@ -37,9 +138,12 @@ export default function LeadPriceChat() {
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
   const [error, setError] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const dropZoneRef = useRef(null);
   const [attachedFile, setAttachedFile] = useState(null);
   const [attachedFileContent, setAttachedFileContent] = useState(null);
   const [authorized, setAuthorized] = useState(false);
@@ -63,18 +167,18 @@ export default function LeadPriceChat() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: SYSTEM_PROMPT,
         messages: msgs,
-        password: password,
-      }),
+        password: password
+      })
     });
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error?.message || `API error ${response.status}`);
     }
     const data = await response.json();
-    return data.content?.map((b) => b.text || "").join("") || "Порожня відповідь";
+    return data.content?.map(b => b.text || "").join("") || "";
   };
 
   const startChat = async () => {
@@ -82,9 +186,7 @@ export default function LeadPriceChat() {
     setLoading(true);
     setError(null);
     try {
-      const text = await callAPI([
-        { role: "user", content: "Почни роботу. Надішли стартове повідомлення." },
-      ]);
+      const text = await callAPI([{ role: "user", content: "Почни роботу." }]);
       setMessages([{ role: "assistant", content: text }]);
     } catch (e) {
       if (e.message === "Невірний пароль") {
@@ -96,224 +198,175 @@ export default function LeadPriceChat() {
         return;
       }
       setError(e.message);
-      setMessages([
-        {
-          role: "assistant",
-          content:
-            "Привіт! Готовий допомогти з документами для клієнта.\n\n**АУДИТ** — напишіть «аудит»\n— Діагностика рекламного кабінету: симптоми, точки зливу, резерв росту\n\n**PROJECT VISION** — напишіть «pv»\n— 90-денний стратегічний Roadmap з прогнозами та планом по місяцях\n\n**ОБИДВА** — напишіть «аудит + pv»\n— Спочатку аудит, потім Project Vision на його основі",
-        },
-      ]);
+      setMessages([{ role: "assistant", content: "Привіт! Готовий допомогти з документами для клієнта.\n\nНапишіть що потрібно і для якої платформи:\n\n— Аудит Meta / Аудит Google\n— Project Vision Meta / Project Vision Google\n— Аудит + PV Meta / Аудит + PV Google\n\nАбо натисніть одну з кнопок нижче." }]);
     }
     setLoading(false);
   };
 
-  const handleFileAttach = (e) => {
-    const file = e.target.files?.[0];
+  // --- FILE HANDLING ---
+  const processFile = (file) => {
     if (!file) return;
     setAttachedFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target?.result;
-      if (typeof text === "string") {
-        setAttachedFileContent(text.slice(0, 50000));
-      }
+      if (typeof text === "string") setAttachedFileContent(text.slice(0, 80000));
     };
-    if (
-      file.type === "text/csv" ||
-      file.name.endsWith(".csv") ||
-      file.name.endsWith(".txt") ||
-      file.name.endsWith(".md")
-    ) {
+    const textTypes = [".csv", ".txt", ".md", ".json", ".tsv"];
+    if (textTypes.some(ext => file.name.toLowerCase().endsWith(ext)) || file.type.startsWith("text/")) {
       reader.readAsText(file);
     } else {
-      setAttachedFileContent(
-        "[Файл прикріплено: " + file.name + " — для повної обробки використовуйте Claude Projects]"
-      );
+      setAttachedFileContent("[Файл: " + file.name + " — тип: " + (file.type || "невідомий") + ", розмір: " + (file.size / 1024).toFixed(1) + "KB]");
     }
   };
 
-  const removeFile = () => {
-    setAttachedFile(null);
-    setAttachedFileContent(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleFileAttach = (e) => processFile(e.target.files?.[0]);
+  const removeFile = () => { setAttachedFile(null); setAttachedFileContent(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
+
+  // --- DRAG & DROP ---
+  const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setDragging(false); };
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation(); setDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) processFile(file);
   };
 
+  // --- RESET CHAT ---
+  const resetChat = async () => {
+    setShowResetConfirm(false);
+    setMessages([]);
+    setInput("");
+    removeFile();
+    setError(null);
+    setLoading(true);
+    try {
+      const text = await callAPI([{ role: "user", content: "Почни роботу." }]);
+      setMessages([{ role: "assistant", content: text }]);
+    } catch (e) {
+      setMessages([{ role: "assistant", content: "Привіт! Готовий допомогти з документами для клієнта.\n\nНапишіть що потрібно і для якої платформи:\n\n— Аудит Meta / Аудит Google\n— Project Vision Meta / Project Vision Google\n— Аудит + PV Meta / Аудит + PV Google\n\nАбо натисніть одну з кнопок нижче." }]);
+    }
+    setLoading(false);
+  };
+
+  // --- DOCX EXPORT ---
+  const getDocType = (text) => {
+    const lower = text.toLowerCase();
+    const hasAuditMarkers = (lower.includes("блок 1") || lower.includes("блок 2")) && (lower.includes("audit") || lower.includes("аудит"));
+    const hasPvMarkers = (lower.includes("місяць 1") || lower.includes("місяць 2")) && (lower.includes("project vision") || lower.includes("roadmap") || lower.includes("стратегічне рішення"));
+    if (hasAuditMarkers) return "audit";
+    if (hasPvMarkers) return "pv";
+    return "other";
+  };
+
+  const getDocLabel = (type) => {
+    if (type === "audit") return "Вивантажити Аудит у DOCX";
+    if (type === "pv") return "Вивантажити Project Vision у DOCX";
+    return "Вивантажити у DOCX";
+  };
+
+  const getDocFilename = (type) => {
+    const date = new Date().toISOString().slice(0, 10);
+    if (type === "audit") return `LeadPrice_Audit_${date}.doc`;
+    if (type === "pv") return `LeadPrice_Project_Vision_${date}.doc`;
+    return `LeadPrice_${date}.doc`;
+  };
+
+  const exportDocx = (text) => {
+    const clean = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    const type = getDocType(text);
+    let tableOpen = false;
+    const lines = clean.split("\n").map(line => {
+      if (line.startsWith("# ")) return `<h1>${line.slice(2)}</h1>`;
+      if (line.startsWith("## ")) return `<h2>${line.slice(3)}</h2>`;
+      if (line.startsWith("### ")) return `<h3>${line.slice(4)}</h3>`;
+      if (line.startsWith("---")) return "<hr>";
+      if (line.startsWith("| ")) {
+        const cells = line.split("|").filter(c => c.trim());
+        if (line.includes("---")) return "";
+        let prefix = "";
+        if (!tableOpen) { prefix = '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;margin:12px 0;">'; tableOpen = true; }
+        return prefix + `<tr>${cells.map(c => `<td style="border:1px solid #ccc;padding:6px 10px;font-size:10pt;">${c.trim()}</td>`).join("")}</tr>`;
+      }
+      if (tableOpen && !line.startsWith("|")) { tableOpen = false; return "</table>" + (line.trim() ? `<p>${line}</p>` : "<br>"); }
+      if (line.startsWith("• ") || line.startsWith("- ")) return `<p style="margin:2px 0 2px 24px;">${line}</p>`;
+      if (line.trim() === "") return "<br>";
+      return `<p style="margin:4px 0;">${line}</p>`;
+    });
+    if (tableOpen) lines.push("</table>");
+
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><style>
+body{font-family:Calibri,sans-serif;font-size:11pt;line-height:1.6;margin:40px 50px;}
+h1{font-size:16pt;margin:24px 0 8px;color:#1a1a1a;}
+h2{font-size:13pt;margin:20px 0 6px;color:#333;}
+h3{font-size:11pt;margin:16px 0 4px;color:#444;}
+b{font-weight:bold;}
+table{border-collapse:collapse;width:100%;margin:12px 0;}
+td,th{border:1px solid #bbb;padding:6px 10px;font-size:10pt;}
+hr{border:none;border-top:1px solid #ddd;margin:20px 0;}
+</style></head><body>${lines.join("")}</body></html>`;
+
+    const blob = new Blob(['\ufeff' + html], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = getDocFilename(type);
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // --- SEND ---
   const sendMessage = async () => {
     if ((!input.trim() && !attachedFileContent) || loading) return;
     setError(null);
-
     let userContent = input.trim();
     if (attachedFileContent) {
-      userContent =
-        (userContent ? userContent + "\n\n" : "") +
-        "--- Прикріплений файл: " +
-        (attachedFile?.name || "file") +
-        " ---\n" +
-        attachedFileContent;
+      userContent = (userContent ? userContent + "\n\n" : "") + "--- Файл: " + (attachedFile?.name || "file") + " ---\n" + attachedFileContent;
     }
-
-    const userMsg = {
-      role: "user",
-      content: userContent,
-      displayContent: input.trim(),
-      fileName: attachedFile?.name,
-    };
+    const userMsg = { role: "user", content: userContent, displayContent: input.trim(), fileName: attachedFile?.name };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
     removeFile();
     setLoading(true);
-
-    const apiMessages = newMessages.map((m) => ({ role: m.role, content: m.content }));
-
     try {
-      const text = await callAPI(apiMessages);
-      setMessages((prev) => [...prev, { role: "assistant", content: text }]);
+      const text = await callAPI(newMessages.map(m => ({ role: m.role, content: m.content })));
+      setMessages(prev => [...prev, { role: "assistant", content: text }]);
     } catch (e) {
       setError(e.message);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Помилка з'єднання: " + e.message + "\n\nСпробуйте ще раз." },
-      ]);
+      setMessages(prev => [...prev, { role: "assistant", content: "Помилка: " + e.message }]);
     }
     setLoading(false);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
-  const formatMessage = (text) => {
-    return text.split("\n").map((line, i) => {
-      let html = line
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replace(
-          /\|(.*?)\|/g,
-          '<code style="background:#1a1a2e;padding:2px 6px;border-radius:4px;font-size:12px">$1</code>'
-        );
-      return (
-        <div
-          key={i}
-          style={{ minHeight: line === "" ? "10px" : "auto" }}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      );
-    });
-  };
+  const formatMessage = (text) => text.split("\n").map((line, i) => {
+    let html = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return <div key={i} style={{ minHeight: line === "" ? "10px" : "auto" }} dangerouslySetInnerHTML={{ __html: html }} />;
+  });
 
   // === PASSWORD SCREEN ===
   if (!authorized) {
     return (
-      <div
-        style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          background: "#0a0a0a",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "40px 20px",
-        }}
-      >
-        <div
-          style={{
-            background: "#c41e1e",
-            width: "72px",
-            height: "72px",
-            borderRadius: "18px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: "28px",
-            boxShadow: "0 12px 40px rgba(196,30,30,0.4)",
-          }}
-        >
+      <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: "#0a0a0a", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+        <div style={{ background: "#c41e1e", width: "72px", height: "72px", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", boxShadow: "0 12px 40px rgba(196,30,30,0.4)" }}>
           <span style={{ color: "#fff", fontSize: "32px", fontWeight: 900 }}>LP</span>
         </div>
-        <h1
-          style={{
-            color: "#fff",
-            fontSize: "32px",
-            fontWeight: 800,
-            margin: "0 0 6px",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          LeadPrice
-        </h1>
-        <p
-          style={{
-            color: "#666",
-            fontSize: "14px",
-            letterSpacing: "3px",
-            textTransform: "uppercase",
-            margin: "0 0 40px",
-          }}
-        >
-          digital agency
-        </p>
-        <div
-          style={{
-            background: "#141414",
-            border: "1px solid #222",
-            borderRadius: "16px",
-            padding: "32px 36px",
-            maxWidth: "400px",
-            width: "100%",
-            textAlign: "center",
-          }}
-        >
-          <h2 style={{ color: "#e8e8e8", fontSize: "18px", fontWeight: 700, margin: "0 0 20px" }}>
-            Введіть пароль
-          </h2>
-          <input
-            type="password"
-            value={password}
+        <h1 style={{ color: "#fff", fontSize: "32px", fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.5px" }}>LeadPrice</h1>
+        <p style={{ color: "#666", fontSize: "14px", letterSpacing: "3px", textTransform: "uppercase", margin: "0 0 40px" }}>digital agency</p>
+        <div style={{ background: "#141414", border: "1px solid #222", borderRadius: "16px", padding: "32px 36px", maxWidth: "400px", width: "100%", textAlign: "center" }}>
+          <h2 style={{ color: "#e8e8e8", fontSize: "18px", fontWeight: 700, margin: "0 0 20px" }}>Введіть пароль</h2>
+          <input type="password" value={password}
             onChange={(e) => { setPassword(e.target.value); setPasswordError(""); }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                if (password.trim()) setAuthorized(true);
-              }
-            }}
+            onKeyDown={(e) => { if (e.key === "Enter" && password.trim()) setAuthorized(true); }}
             placeholder="Пароль"
-            style={{
-              width: "100%",
-              background: "#1a1a1a",
-              border: passwordError ? "1px solid #c41e1e" : "1px solid #333",
-              borderRadius: "10px",
-              padding: "12px 16px",
-              color: "#e8e8e8",
-              fontSize: "15px",
-              outline: "none",
-              fontFamily: "inherit",
-              marginBottom: "8px",
-            }}
+            style={{ width: "100%", background: "#1a1a1a", border: passwordError ? "1px solid #c41e1e" : "1px solid #333", borderRadius: "10px", padding: "12px 16px", color: "#e8e8e8", fontSize: "15px", outline: "none", fontFamily: "inherit", marginBottom: "8px" }}
           />
-          {passwordError && (
-            <p style={{ color: "#f87171", fontSize: "13px", margin: "0 0 12px" }}>{passwordError}</p>
-          )}
-          <button
-            onClick={() => {
-              if (password.trim()) setAuthorized(true);
-            }}
-            style={{
-              background: "linear-gradient(135deg, #c41e1e 0%, #e83a3a 100%)",
-              color: "#fff",
-              border: "none",
-              padding: "14px 40px",
-              borderRadius: "10px",
-              fontSize: "15px",
-              fontWeight: 700,
-              cursor: "pointer",
-              width: "100%",
-              marginTop: "8px",
-              boxShadow: "0 4px 20px rgba(196,30,30,0.3)",
-            }}
-          >
+          {passwordError && <p style={{ color: "#f87171", fontSize: "13px", margin: "0 0 12px" }}>{passwordError}</p>}
+          <button onClick={() => { if (password.trim()) setAuthorized(true); }}
+            style={{ background: "linear-gradient(135deg, #c41e1e 0%, #e83a3a 100%)", color: "#fff", border: "none", padding: "14px 40px", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", width: "100%", marginTop: "8px", boxShadow: "0 4px 20px rgba(196,30,30,0.3)" }}>
             Увійти
           </button>
         </div>
@@ -324,88 +377,16 @@ export default function LeadPriceChat() {
   // === LANDING ===
   if (!started) {
     return (
-      <div
-        style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          background: "#0a0a0a",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "40px 20px",
-        }}
-      >
-        <div
-          style={{
-            background: "#c41e1e",
-            width: "72px",
-            height: "72px",
-            borderRadius: "18px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: "28px",
-            boxShadow: "0 12px 40px rgba(196,30,30,0.4)",
-          }}
-        >
+      <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: "#0a0a0a", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+        <div style={{ background: "#c41e1e", width: "72px", height: "72px", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", boxShadow: "0 12px 40px rgba(196,30,30,0.4)" }}>
           <span style={{ color: "#fff", fontSize: "32px", fontWeight: 900 }}>LP</span>
         </div>
-        <h1
-          style={{
-            color: "#fff",
-            fontSize: "32px",
-            fontWeight: 800,
-            margin: "0 0 6px",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          LeadPrice
-        </h1>
-        <p
-          style={{
-            color: "#666",
-            fontSize: "14px",
-            letterSpacing: "3px",
-            textTransform: "uppercase",
-            margin: "0 0 40px",
-          }}
-        >
-          digital agency
-        </p>
-        <div
-          style={{
-            background: "#141414",
-            border: "1px solid #222",
-            borderRadius: "16px",
-            padding: "32px 36px",
-            maxWidth: "480px",
-            width: "100%",
-            textAlign: "center",
-          }}
-        >
-          <h2 style={{ color: "#e8e8e8", fontSize: "20px", fontWeight: 700, margin: "0 0 12px" }}>
-            AI-агент: Аудит + Project Vision
-          </h2>
-          <p style={{ color: "#888", fontSize: "14px", lineHeight: "1.6", margin: "0 0 28px" }}>
-            Meta Ads та Google Ads — діагностика кабінету, 90-денний Roadmap, прогнози та план по
-            місяцях.
-          </p>
-          <button
-            onClick={startChat}
-            style={{
-              background: "linear-gradient(135deg, #c41e1e 0%, #e83a3a 100%)",
-              color: "#fff",
-              border: "none",
-              padding: "14px 40px",
-              borderRadius: "10px",
-              fontSize: "15px",
-              fontWeight: 700,
-              cursor: "pointer",
-              width: "100%",
-              boxShadow: "0 4px 20px rgba(196,30,30,0.3)",
-            }}
-          >
+        <h1 style={{ color: "#fff", fontSize: "32px", fontWeight: 800, margin: "0 0 6px" }}>LeadPrice</h1>
+        <p style={{ color: "#666", fontSize: "14px", letterSpacing: "3px", textTransform: "uppercase", margin: "0 0 40px" }}>digital agency</p>
+        <div style={{ background: "#141414", border: "1px solid #222", borderRadius: "16px", padding: "32px 36px", maxWidth: "480px", width: "100%", textAlign: "center" }}>
+          <h2 style={{ color: "#e8e8e8", fontSize: "20px", fontWeight: 700, margin: "0 0 12px" }}>AI-агент: Аудит + Project Vision</h2>
+          <p style={{ color: "#888", fontSize: "14px", lineHeight: "1.6", margin: "0 0 28px" }}>Meta Ads та Google Ads — діагностика кабінету, 90-денний Roadmap, прогнози та план по місяцях.</p>
+          <button onClick={startChat} style={{ background: "linear-gradient(135deg, #c41e1e 0%, #e83a3a 100%)", color: "#fff", border: "none", padding: "14px 40px", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", width: "100%", boxShadow: "0 4px 20px rgba(196,30,30,0.3)" }}>
             Почати роботу
           </button>
         </div>
@@ -416,175 +397,132 @@ export default function LeadPriceChat() {
   // === CHAT ===
   return (
     <div
-      style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        background: "#0a0a0a",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-      }}
+      ref={dropZoneRef}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: "#0a0a0a", height: "100vh", display: "flex", flexDirection: "column", position: "relative" }}
     >
+      {/* Drag overlay */}
+      {dragging && (
+        <div style={{ position: "absolute", inset: 0, background: "rgba(196,30,30,0.15)", border: "3px dashed #c41e1e", borderRadius: "12px", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "#1a1a1a", padding: "24px 40px", borderRadius: "12px", border: "1px solid #c41e1e" }}>
+            <p style={{ color: "#fff", fontSize: "18px", fontWeight: 700, margin: 0 }}>Перетягніть файл сюди</p>
+            <p style={{ color: "#888", fontSize: "13px", margin: "6px 0 0" }}>CSV, TXT, PDF, DOCX</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <div
-        style={{
-          background: "#111",
-          borderBottom: "1px solid #1e1e1e",
-          padding: "14px 24px",
-          display: "flex",
-          alignItems: "center",
-          gap: "14px",
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            background: "#c41e1e",
-            width: "36px",
-            height: "36px",
-            borderRadius: "10px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
+      <div style={{ background: "#111", borderBottom: "1px solid #1e1e1e", padding: "14px 24px", display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
+        <div style={{ background: "#c41e1e", width: "36px", height: "36px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <span style={{ color: "#fff", fontSize: "15px", fontWeight: 900 }}>LP</span>
         </div>
         <div>
           <div style={{ color: "#fff", fontSize: "15px", fontWeight: 700 }}>LeadPrice AI</div>
           <div style={{ color: "#555", fontSize: "11px" }}>Аудит + Project Vision</div>
         </div>
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              background: loading ? "#f59e0b" : "#22c55e",
-              boxShadow: loading
-                ? "0 0 8px rgba(245,158,11,0.5)"
-                : "0 0 8px rgba(34,197,94,0.5)",
-            }}
-          />
-          <span style={{ color: "#666", fontSize: "12px" }}>
-            {loading ? "Генерую..." : "Онлайн"}
-          </span>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}>
+          <button
+              onClick={() => messages.length > 1 ? setShowResetConfirm(true) : null}
+              style={{
+                background: "transparent",
+                border: "2px solid #f5c518",
+                borderRadius: "10px",
+                padding: "8px 22px",
+                fontSize: "14px",
+                color: "#fff",
+                cursor: messages.length > 1 ? "pointer" : "default",
+                fontWeight: 700,
+                fontFamily: "inherit",
+                transition: "all 0.3s",
+                opacity: messages.length > 1 ? 1 : 0.35,
+                boxShadow: messages.length > 1 ? "0 0 12px rgba(245,197,24,0.25)" : "none"
+              }}
+              onMouseEnter={e => { if (messages.length > 1) { e.target.style.boxShadow = "0 0 20px rgba(245,197,24,0.5)"; }}}
+              onMouseLeave={e => { if (messages.length > 1) { e.target.style.boxShadow = "0 0 12px rgba(245,197,24,0.25)"; }}}
+            >
+              Новий чат
+            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: loading ? "#f59e0b" : "#22c55e", boxShadow: loading ? "0 0 8px rgba(245,158,11,0.5)" : "0 0 8px rgba(34,197,94,0.5)" }} />
+            <span style={{ color: "#666", fontSize: "12px" }}>{loading ? "Генерую..." : "Онлайн"}</span>
+          </div>
         </div>
       </div>
 
-      {/* Error banner */}
-      {error && (
-        <div
-          style={{
-            background: "#1a1212",
-            borderBottom: "1px solid #331a1a",
-            padding: "8px 24px",
-            fontSize: "12px",
-            color: "#f87171",
-          }}
-        >
-          API: {error}
+      {/* Reset confirmation modal */}
+      {showResetConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "16px", padding: "28px 32px", maxWidth: "400px", width: "90%", textAlign: "center" }}>
+            <p style={{ color: "#fff", fontSize: "16px", fontWeight: 700, margin: "0 0 8px" }}>Почати новий чат?</p>
+            <p style={{ color: "#888", fontSize: "13px", lineHeight: "1.5", margin: "0 0 24px" }}>Вся переписка буде видалена. Спочатку вивантажте документи у DOCX, якщо ще не зробили.</p>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+              <button onClick={() => setShowResetConfirm(false)}
+                style={{ background: "#252525", border: "1px solid #444", borderRadius: "8px", padding: "10px 24px", fontSize: "13px", color: "#ccc", cursor: "pointer", fontWeight: 600, fontFamily: "inherit" }}>
+                Скасувати
+              </button>
+              <button onClick={resetChat}
+                style={{ background: "#c41e1e", border: "none", borderRadius: "8px", padding: "10px 24px", fontSize: "13px", color: "#fff", cursor: "pointer", fontWeight: 700, fontFamily: "inherit" }}>
+                Так, новий чат
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
+      {error && <div style={{ background: "#1a1212", borderBottom: "1px solid #331a1a", padding: "8px 24px", fontSize: "12px", color: "#f87171" }}>API: {error}</div>}
+
       {/* Messages */}
-      <div style={{ flex: 1, overflow: "auto", padding: "20px 24px" }}>
+      <div onDragOver={handleDragOver} onDrop={handleDrop} style={{ flex: 1, overflow: "auto", padding: "20px 24px" }}>
         {messages.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              justifyContent: m.role === "user" ? "flex-end" : "flex-start",
-              marginBottom: "16px",
-            }}
-          >
+          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "16px" }}>
             {m.role === "assistant" && (
-              <div
-                style={{
-                  background: "#c41e1e",
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  marginRight: "10px",
-                  marginTop: "2px",
-                }}
-              >
+              <div style={{ background: "#c41e1e", width: "28px", height: "28px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: "10px", marginTop: "2px" }}>
                 <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900 }}>LP</span>
               </div>
             )}
-            <div
-              style={{
-                maxWidth: "80%",
+            <div style={{ maxWidth: "80%" }}>
+              <div style={{
                 background: m.role === "user" ? "#1a1a2e" : "#141414",
                 border: m.role === "user" ? "1px solid #252540" : "1px solid #1e1e1e",
-                borderRadius:
-                  m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                padding: "14px 18px",
-                fontSize: "14px",
-                lineHeight: "1.7",
-                color: "#ddd",
-              }}
-            >
-              {m.fileName && (
-                <div
+                borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                padding: "14px 18px", fontSize: "14px", lineHeight: "1.7", color: "#ddd"
+              }}>
+                {m.fileName && (
+                  <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "6px 12px", marginBottom: "10px", fontSize: "12px", color: "#999" }}>
+                    + {m.fileName}
+                  </div>
+                )}
+                {formatMessage(m.displayContent || m.content)}
+              </div>
+              {/* DOCX export button for assistant messages */}
+              {m.role === "assistant" && m.content.length > 500 && (getDocType(m.content) === "audit" || getDocType(m.content) === "pv") && (
+                <button
+                  onClick={() => exportDocx(m.content)}
                   style={{
-                    background: "#1a1a1a",
-                    border: "1px solid #333",
-                    borderRadius: "8px",
-                    padding: "6px 12px",
-                    marginBottom: "10px",
-                    fontSize: "12px",
-                    color: "#999",
+                    background: "#1a1a1a", border: "1px solid #333", borderRadius: "6px",
+                    padding: "6px 14px", marginTop: "8px", fontSize: "12px", color: "#ccc",
+                    cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px",
+                    fontWeight: 600, fontFamily: "inherit"
                   }}
+                  onMouseEnter={e => { e.target.style.background = "#252525"; e.target.style.borderColor = "#c41e1e"; }}
+                  onMouseLeave={e => { e.target.style.background = "#1a1a1a"; e.target.style.borderColor = "#333"; }}
                 >
-                  + {m.fileName}
-                </div>
+                  {getDocLabel(getDocType(m.content))}
+                </button>
               )}
-              {formatMessage(m.displayContent || m.content)}
             </div>
           </div>
         ))}
         {loading && (
           <div style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
-            <div
-              style={{
-                background: "#c41e1e",
-                width: "28px",
-                height: "28px",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
+            <div style={{ background: "#c41e1e", width: "28px", height: "28px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900 }}>LP</span>
             </div>
-            <div
-              style={{
-                background: "#141414",
-                border: "1px solid #1e1e1e",
-                borderRadius: "16px 16px 16px 4px",
-                padding: "16px 20px",
-                display: "flex",
-                gap: "6px",
-              }}
-            >
-              {[0, 1, 2].map((j) => (
-                <div
-                  key={j}
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: "#c41e1e",
-                    animation: `pulse 1.2s ease-in-out ${j * 0.2}s infinite`,
-                  }}
-                />
+            <div style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: "16px 16px 16px 4px", padding: "16px 20px", display: "flex", gap: "6px" }}>
+              {[0, 1, 2].map(j => (
+                <div key={j} style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#c41e1e", animation: `pulse 1.2s ease-in-out ${j * 0.2}s infinite` }} />
               ))}
             </div>
           </div>
@@ -593,136 +531,93 @@ export default function LeadPriceChat() {
       </div>
 
       {/* Input */}
-      <div
-        style={{
-          borderTop: "1px solid #1e1e1e",
-          padding: "16px 24px",
-          background: "#0d0d0d",
-          flexShrink: 0,
-        }}
-      >
+      <div style={{ borderTop: "1px solid #1e1e1e", padding: "12px 24px 16px", background: "#0d0d0d", flexShrink: 0 }}>
+
+        {/* Quick action buttons - show at start */}
+        {messages.length <= 1 && !loading && (
+          <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
+            {[
+              { label: "Аудит Meta", value: "аудит meta" },
+              { label: "Аудит Google", value: "аудит google" },
+              { label: "Project Vision Meta", value: "project vision meta" },
+              { label: "Project Vision Google", value: "project vision google" },
+              { label: "Аудит + Project Vision Meta", value: "аудит + pv meta" },
+              { label: "Аудит + Project Vision Google", value: "аудит + pv google" }
+            ].map(btn => (
+              <button
+                key={btn.value}
+                onClick={async () => {
+                  const userMsg = { role: "user", content: btn.value, displayContent: btn.value };
+                  const newMsgs = [...messages, userMsg];
+                  setMessages(newMsgs);
+                  setLoading(true);
+                  try {
+                    const text = await callAPI(newMsgs.map(m => ({ role: m.role, content: m.content })));
+                    setMessages(prev => [...prev, { role: "assistant", content: text }]);
+                  } catch (e) {
+                    setMessages(prev => [...prev, { role: "assistant", content: "Помилка: " + e.message }]);
+                  }
+                  setLoading(false);
+                }}
+                onMouseEnter={e => { e.target.style.borderColor = "#c41e1e"; e.target.style.color = "#fff"; }}
+                onMouseLeave={e => { e.target.style.borderColor = "#333"; e.target.style.color = "#aaa"; }}
+                style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "8px 16px", fontSize: "13px", color: "#aaa", cursor: "pointer", fontWeight: 600, fontFamily: "inherit", transition: "all 0.15s" }}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Export buttons - show when documents are ready */}
+        {(() => {
+          const docs = messages.filter(m => m.role === "assistant" && m.content.length > 500);
+          const auditMsg = docs.find(m => getDocType(m.content) === "audit");
+          const pvMsg = docs.find(m => getDocType(m.content) === "pv");
+          if (!auditMsg && !pvMsg) return null;
+          return (
+            <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
+              {auditMsg && (
+                <button onClick={() => exportDocx(auditMsg.content)}
+                  onMouseEnter={e => { e.target.style.borderColor = "#c41e1e"; e.target.style.color = "#fff"; }}
+                  onMouseLeave={e => { e.target.style.borderColor = "#444"; e.target.style.color = "#ccc"; }}
+                  style={{ background: "#1a1a1a", border: "1px solid #444", borderRadius: "8px", padding: "8px 16px", fontSize: "13px", color: "#ccc", cursor: "pointer", fontWeight: 600, fontFamily: "inherit", transition: "all 0.15s" }}>
+                  Вивантажити Аудит у DOCX
+                </button>
+              )}
+              {pvMsg && (
+                <button onClick={() => exportDocx(pvMsg.content)}
+                  onMouseEnter={e => { e.target.style.borderColor = "#c41e1e"; e.target.style.color = "#fff"; }}
+                  onMouseLeave={e => { e.target.style.borderColor = "#444"; e.target.style.color = "#ccc"; }}
+                  style={{ background: "#1a1a1a", border: "1px solid #444", borderRadius: "8px", padding: "8px 16px", fontSize: "13px", color: "#ccc", cursor: "pointer", fontWeight: 600, fontFamily: "inherit", transition: "all 0.15s" }}>
+                  Вивантажити Project Vision у DOCX
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
         {attachedFile && (
-          <div
-            style={{
-              background: "#1a1a1a",
-              border: "1px solid #333",
-              borderRadius: "8px",
-              padding: "8px 12px",
-              marginBottom: "10px",
-              fontSize: "12px",
-              color: "#999",
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
+          <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "8px 12px", marginBottom: "10px", fontSize: "12px", color: "#999", display: "flex", justifyContent: "space-between" }}>
             <span>{attachedFile.name}</span>
-            <button
-              onClick={removeFile}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#666",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-            >
-              x
-            </button>
+            <button onClick={removeFile} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "16px" }}>x</button>
           </div>
         )}
         <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              background: "#1a1a1a",
-              border: "1px solid #333",
-              borderRadius: "10px",
-              width: "44px",
-              height: "44px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "#777",
-              fontSize: "20px",
-              flexShrink: 0,
-            }}
-          >
-            +
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,.txt,.pdf,.docx,.md"
-            style={{ display: "none" }}
-            onChange={handleFileAttach}
-          />
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Напишіть повідомлення..."
-            rows={1}
-            style={{
-              flex: 1,
-              background: "#141414",
-              border: "1px solid #222",
-              borderRadius: "12px",
-              padding: "12px 16px",
-              color: "#e8e8e8",
-              fontSize: "14px",
-              lineHeight: "1.5",
-              resize: "none",
-              outline: "none",
-              fontFamily: "inherit",
-              maxHeight: "160px",
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={loading || (!input.trim() && !attachedFileContent)}
-            style={{
-              background:
-                loading || (!input.trim() && !attachedFileContent) ? "#222" : "#c41e1e",
-              border: "none",
-              borderRadius: "10px",
-              width: "44px",
-              height: "44px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor:
-                loading || (!input.trim() && !attachedFileContent) ? "not-allowed" : "pointer",
-              flexShrink: 0,
-            }}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
+          <button onClick={() => fileInputRef.current?.click()} style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: "10px", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#777", fontSize: "20px", flexShrink: 0 }}>+</button>
+          <input ref={fileInputRef} type="file" accept=".csv,.txt,.pdf,.docx,.md,.tsv,.json" style={{ display: "none" }} onChange={handleFileAttach} />
+          <textarea ref={textareaRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Напишіть повідомлення або перетягніть файл..." rows={1}
+            style={{ flex: 1, background: "#141414", border: "1px solid #222", borderRadius: "12px", padding: "12px 16px", color: "#e8e8e8", fontSize: "14px", lineHeight: "1.5", resize: "none", outline: "none", fontFamily: "inherit", maxHeight: "160px" }} />
+          <button onClick={sendMessage} disabled={loading || (!input.trim() && !attachedFileContent)}
+            style={{ background: (loading || (!input.trim() && !attachedFileContent)) ? "#222" : "#c41e1e", border: "none", borderRadius: "10px", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", cursor: (loading || (!input.trim() && !attachedFileContent)) ? "not-allowed" : "pointer", flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
       </div>
       <style>{`
-        @keyframes pulse {
-          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-          40% { opacity: 1; transform: scale(1.1); }
-        }
-        textarea::placeholder { color: #555; }
-        textarea:focus { border-color: #333; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        @keyframes pulse { 0%,80%,100%{opacity:.3;transform:scale(.8)} 40%{opacity:1;transform:scale(1.1)} }
+        textarea::placeholder{color:#555} textarea:focus{border-color:#333}
+        ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
       `}</style>
     </div>
   );
